@@ -7,7 +7,7 @@ sense = SenseHat()
 # Variables -----------------
 slug = [[2,4],[3,4],[4,4]]
 
-direction = "right"
+direction = "up"
 
 white = (255,255,255)
 blank = (0,0,0)
@@ -31,6 +31,17 @@ def move():
         # Move along the column
         next[0] = last[0] + 1
 
+    elif direction == "left":
+
+        next[0] = last[0] - 1
+
+    elif direction == "up":
+
+        next[1] = last[1] - 1
+    
+    elif direction == "down":
+        next[1] = last[1] + 1
+    
     # Add this pixel at the end of the slug list
     slug.append(next)
 
@@ -43,9 +54,24 @@ def move():
     # Remove the first pixel from the list
     slug.remove(first)
 
+
+def joystick_moved(event):
+    global direction
+    direction = event.direction
+
+
+def make_veg():
+    x, y = randint(0,7), randint(0,7)
+
+    global slug
+    if [x,y] not in slug:
+        sense.set_pixel(x, y, (255,0,0))
+
 # Main Program --------------
 draw_slug()
 
 while True:
+    sense.stick.direction_any = joystick_moved
     move()
+    make_veg()
     sleep(0.5)

@@ -6,13 +6,20 @@ sense = SenseHat()
 
 # Variables -----------------
 slug = [[2,4],[3,4],[4,4]]
+speed = 0.5
 
-direction = "up"
+direction = "right"
+
+vegetable = []
 
 white = (255,255,255)
 blank = (0,0,0)
 
 grid_length = 8
+
+score = 0
+
+alive = True
 
 # Functions -----------------
 def draw_slug():
@@ -49,10 +56,23 @@ def move():
     sense.set_pixel(next[0]%grid_length, next[1]%grid_length, white)
 
     # Set the first pixel in the slug list to blank
-    sense.set_pixel(first[0]%grid_length,first[1]%grid_length, blank)
+    sense.set_pixel(first[0]%grid_length, first[1]%grid_length, blank)
 
-    # Remove the first pixel from the list
-    slug.remove(first)
+    if (next[0], next[1]) in vegetable and score % 5 == 0:
+        vegetable.remove((next[0], next[1]))
+        score += 1
+        speed = speed * 0.8
+
+    elif (next[0], next[1]) in vegetable:
+        # Remove the first pixel from the list
+        slug.remove(first)
+
+        vegetable.remove((next[0], next[1]))
+        score += 1
+    
+
+    if [next[0], next[1]] in slug:
+        alive = False
 
 
 def joystick_moved(event):
@@ -62,16 +82,25 @@ def joystick_moved(event):
 
 def make_veg():
     x, y = randint(0,7), randint(0,7)
+    global vegetable 
+     
 
-    global slug
-    if [x,y] not in slug:
-        sense.set_pixel(x, y, (255,0,0))
+    if [x,y] not in slug and (x,y) not in vegetable:
+        if len(vegetable) < 4:
+            sense.set_pixel(x, y, (255,0,0))
+            vegetable.append((x,y))
+        elif randint(0,4) == 4:
+            sense.set_pixel(x, y, (255,0,0))
+            vegetable.append((x,y))
 
 # Main Program --------------
 draw_slug()
 
-while True:
+while alive:
     sense.stick.direction_any = joystick_moved
     move()
     make_veg()
-    sleep(0.5)
+    sleep(speed)
+
+sense.show_message("Score: " + chr(score))
+sense.clear()
